@@ -288,7 +288,7 @@ function App() {
       // 支持本地开发和生产环境
       const baseUrl = process.env.NODE_ENV === 'development' 
         ? 'http://localhost:5000' 
-        : 'https://aaa-backend-xxxx.vercel.app'; // 替换为你的实际Vercel URL
+        : 'https://aaa-2h8pcqjyy-xdzs-chous-projects.vercel.app';
       const url = `${baseUrl}/api/gun_solution_loadout`;
       const res = await axios.post(url, {});
       if (res.data.error) {
