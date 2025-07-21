@@ -285,7 +285,11 @@ function App() {
     setResult(null);
     setLoading(true);
     try {
-      const url = 'http://localhost:5000/api/gun_solution_loadout';
+      // 支持本地开发和生产环境
+      const baseUrl = process.env.NODE_ENV === 'development' 
+        ? 'http://localhost:5000' 
+        : 'https://你的后端服务器地址'; // 需要替换为你的实际后端地址
+      const url = `${baseUrl}/api/gun_solution_loadout`;
       const res = await axios.post(url, {});
       if (res.data.error) {
         setError(res.data.error);

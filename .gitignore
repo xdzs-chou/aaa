@@ -7,12 +7,11 @@ __pycache__/
 .Python
 env/
 venv/
-.venv/
+ENV/
 
 # Production builds
-build/
-dist/
-*.egg-info/
+frontend/build/
+frontend/dist/
 
 # Environment variables
 .env
@@ -21,27 +20,20 @@ dist/
 .env.test.local
 .env.production.local
 
-# IDE files
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
 
-# OS generated files
+# OS
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
 
 # Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-*.log
 
 # Runtime data
 pids
@@ -71,29 +63,4 @@ jspm_packages/
 .yarn-integrity
 
 # dotenv environment variables file
-.env
-
-# parcel-bundler cache (https://parceljs.org/)
-.cache
-.parcel-cache
-
-# next.js build output
-.next
-
-# nuxt.js build output
-.nuxt
-
-# vuepress build output
-.vuepress/dist
-
-# Serverless directories
-.serverless
-
-# FuseBox cache
-.fusebox/
-
-# DynamoDB Local files
-.dynamodb/
-
-# TernJS port file
-.tern-port 
+.env 

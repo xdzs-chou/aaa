@@ -1,70 +1,64 @@
-# 三角洲随机配装本地版
+# 三角洲行动随机配装生成器
 
-一个为三角洲行动游戏设计的随机配装生成器，包含前端Web界面和后端API服务。
+一个基于React和Flask的三角洲行动游戏配装生成器，支持随机生成武器、装备和配件组合。
 
 ## 功能特性
 
-- 🎯 随机生成三角洲行动配装方案
-- 🔫 支持改枪码配装模式
-- 🗺️ 根据地图战备值要求智能配装
-- 💰 显示装备总价值和战备值要求
-- 🎨 现代化UI设计，支持装备等级显示
-- 📱 响应式设计，支持移动端访问
+- 🎯 随机生成主武器和配件
+- 🛡️ 随机生成护甲、头盔、背包、胸挂
+- 🗺️ 随机选择地图
+- 💰 显示总价格
+- 📱 响应式设计，支持移动端
+- 🎨 现代化UI设计
 
-## 项目结构
+## 技术栈
 
-```
-三角洲随机配装本地版/
-├── backend/           # 后端Flask API
-│   ├── app.py        # Flask应用主文件
-│   ├── random_loadout.py  # 配装生成逻辑
-│   ├── requirements.txt   # Python依赖
-│   └── cookie.txt    # Cookie配置文件
-├── frontend/         # 前端React应用
-│   ├── src/
-│   │   └── App.jsx   # 主应用组件
-│   ├── public/
-│   │   └── index.html # HTML模板
-│   └── package.json  # Node.js依赖配置
-└── random_loadout.py # 独立运行版本
-```
+### 前端
+- React 18
+- Axios
+- CSS3
 
-## 本地运行
+### 后端
+- Flask
+- Flask-CORS
 
-### 后端服务
+## 本地开发
 
+### 后端启动
 ```bash
 cd backend
 pip install -r requirements.txt
 python app.py
 ```
 
-后端服务将在 `http://localhost:5000` 启动
-
-### 前端应用
-
+### 前端启动
 ```bash
 cd frontend
 npm install
 npm start
 ```
 
-前端应用将在 `http://localhost:3000` 启动
+## 部署
 
-## 部署到GitHub Pages
+### GitHub Pages部署
+1. 将代码推送到GitHub仓库
+2. 在仓库设置中启用GitHub Pages
+3. 选择gh-pages分支作为源
 
-1. 在GitHub上创建新仓库
-2. 将代码推送到仓库
-3. 安装gh-pages依赖：`npm install gh-pages --save-dev`
-4. 修改package.json中的homepage字段为你的GitHub Pages URL
-5. 运行部署命令：`npm run deploy`
+### 后端部署
+需要将后端部署到支持Python的服务器上，如：
+- Heroku
+- Vercel
+- Railway
+- 自建服务器
 
-## 技术栈
+## 访问地址
 
-- **前端**: React, Axios
-- **后端**: Flask, Flask-CORS
-- **部署**: GitHub Pages
+- 本地开发：http://localhost:3000
+- GitHub Pages：https://[用户名].github.io/[仓库名]
 
-## 许可证
+## 注意事项
 
-MIT License 
+- 确保后端服务器正常运行
+- 更新前端代码中的后端API地址
+- 配置CORS以允许跨域请求 
