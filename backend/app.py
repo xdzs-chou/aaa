@@ -5,7 +5,7 @@ import os
 import requests
 
 app = Flask(__name__)
-CORS(app, supports_credentials=True)
+CORS(app, supports_credentials=True, resources={r"/api/*": {"origins": "https://xdzs-chou.github.io"}})
 
 def get_cookie_from_file():
     try:
