@@ -21,8 +21,10 @@ def gun_solution_loadout():
     result = rl.generate_gun_solution_loadout()
     return jsonify(result)
 
-@app.route('/api/daily_secret', methods=['POST'])
+@app.route('/api/daily_secret', methods=['POST', 'OPTIONS'])
 def daily_secret():
+    if request.method == 'OPTIONS':
+        return '', 200
     url = "https://comm.ams.game.qq.com/ide/"
     payload = {
         "iChartId": "384918",
