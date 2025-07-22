@@ -1,6 +1,6 @@
 
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 // 删除粒子特效相关依赖
 // import Particles from "react-tsparticles";
@@ -48,7 +48,7 @@ const levelColors = {
 
 // 等级数据
 const armorLevels = [
-  {name:"泰坦防弹装甲",level:6},{name:"特里克MAS2.0装甲",level:6},{name:"HA-2防弹装甲",level:5},{name:"金刚防弹衣",level:5},{name:"重型突击背心",level:5},{name:"FS复合防弹衣",level:4},{name:"Hvk-2防弹衣",level:4},{name:"精英防弹背心",level:4},{name:"HMP特勤防弹衣",level:4},{name:"MK-2战术背心",level:4},{name:"DT-AVS防弹衣",level:4},{name:"突击手防弹背心",level:3},{name:"武士防弹背心",level:3},{name:"射手战术背心",level:3},{name:"TG-H防弹衣",level:3},{name:"Hvk快拆防弹衣",level:3},{name:"制式防弹背心",level:2},{name:"轻型防弹衣",level:2},{name:"尼龙防弹衣",level:2},{name:"安保防弹衣",level:1},{name:"摩托马甲",level:1}
+  {name:"泰坦防弹装甲",level:6},{name:"特里克MAS2.0装甲",level:6},{name:"HA-2防弹装甲",level:5},{name:"金刚防弹衣",level:5},{name:"重型突击背心",level:5},{name:"FS复合防弹衣",level:4},{name:"Hvk-2防弹衣",level:4},{name:"精英防弹背心",level:4},{name:"HMP特勤防弹衣",level:4},{name:"MK-2战术背心",level:4},{name:"DT-AVS防弹衣",level:4},{name:"突击手防弹背心",level:4},{name:"武士防弹背心",level:3},{name:"射手战术背心",level:3},{name:"TG-H防弹衣",level:3},{name:"Hvk快拆防弹衣",level:3},{name:"制式防弹背心",level:2},{name:"轻型防弹衣",level:2},{name:"尼龙防弹衣",level:2},{name:"安保防弹衣",level:1},{name:"摩托马甲",level:1}
 ];
 const helmetLevels = [
   {name:"H70 夜视精英头盔",level:6},{name:"GT5 指挥官头盔",level:6},{name:"DICH-9重型头盔",level:6},{name:"H70 精英头盔",level:6},{name:"GN 久战重型夜视头盔",level:5},{name:"GN 重型夜视头盔",level:5},{name:"GN 重型头盔",level:5},{name:"DICH-1战术头盔",level:5},{name:"H09 防暴头盔",level:5},{name:"Mask-1铁壁头盔",level:4},{name:"GT1 战术头盔",level:4},{name:"DICH 训练头盔",level:4},{name:"MHS 战术头盔",level:4},{name:"D6 战术头盔",level:4},{name:"MC201 头盔",level:3},{name:"DAS 防弹头盔",level:3},{name:"H07 战术头盔",level:3},{name:"防暴头盔",level:2},{name:"MC防弹头盔",level:2},{name:"DRO 战术头盔",level:2},{name:"H01 战术头盔",level:2},{name:"复古摩托头盔",level:1},{name:"户外棒球帽",level:1},{name:"奔尼帽",level:1},{name:"安保头盔",level:1},{name:"老式钢盔",level:1}
@@ -229,7 +229,7 @@ function LevelBadge({ level }) {
   );
 }
 // 2. 卡片组件
-function Card({ title, children, level }) {
+function Card({ title, children, level, price }) {
   const color = levelColors[level] || levelColors.default;
   return (
     <div className="item-container">
@@ -251,27 +251,133 @@ function Card({ title, children, level }) {
           {title} {level && <LevelBadge level={level} />}
         </div>
         <div style={{ fontSize: 20, fontWeight: 600, color: '#222' }}>{children}</div>
+        {price !== undefined && (
+          <div style={{ fontSize: 16, color: '#0071e3', fontWeight: 700, marginTop: 8 }}>价格：￥{price}</div>
+        )}
       </div>
     </div>
   );
 }
 // 新增主武器+配件大卡片
 function WeaponAndAccessoriesCard({ weapon, accessories }) {
+  // 计算总价
+  const weaponPrice = weapon?.avgPrice || 0;
+  const accessoriesPrice = (accessories || []).reduce((sum, acc) => sum + (acc.avgPrice || 0), 0);
+  const total = weaponPrice + accessoriesPrice;
   return (
     <div className="item-container" style={{width:'100%', maxWidth: '700px'}}>
       <div className="card" style={{width:'100%', maxWidth:'700px', minWidth:260, boxSizing:'border-box', textAlign:'center'}}>
         <div style={{fontWeight:700, fontSize:24, marginBottom:10, letterSpacing:1}}>主武器 & 配件</div>
         <div style={{fontSize:20, fontWeight:600, marginBottom:12}}>
           {weapon?.objectName || '无'}
+          {weapon?.avgPrice !== undefined && (
+            <span style={{fontSize:16, color:'#0071e3', fontWeight:700, marginLeft:12}}>价格：￥{weapon.avgPrice}</span>
+          )}
         </div>
         <div style={{fontSize:18, color:'#0071e3', fontWeight:500, marginBottom:6}}>配件：</div>
-        <div style={{fontSize:17, color:'#333', fontWeight:500}}>
-          {accessories && accessories.length > 0 ? accessories.map(acc => acc.objectName).join('、') : '无'}
+        <div style={{fontSize:17, color:'#333', fontWeight:500, display:'flex', flexDirection:'column', alignItems:'center', gap:4}}>
+          {accessories && accessories.length > 0 ? accessories.map(acc => (
+            <div key={acc.objectID} style={{margin:'2px 0', width:'100%', display:'flex', justifyContent:'center', alignItems:'center', gap:8}}>
+              <span>{acc.objectName}</span>
+              <span style={{fontSize:15, color:'#888'}}>ID: {acc.objectID}</span>
+              <span style={{fontSize:16, color:'#0071e3', fontWeight:700}}>价格：￥{acc.avgPrice}</span>
+            </div>
+          )) : '无'}
         </div>
+        {/* 总价显示 */}
+        <div style={{marginTop:14, fontWeight:800, fontSize:20, color:'#ff4d4f'}}>总价格：￥{total}</div>
       </div>
     </div>
   );
 }
+
+// 新增：每日密码卡片组件
+function DailySecretRow({ secret }) {
+  if (!secret) return null;
+  // 解析格式："零号大坝:3839;\n长弓溪谷:3424;\n巴克什:6379;\n航天基地:8214;\n潮汐监狱:6900"
+  const items = secret.split(/;\s*|\n/).filter(Boolean).map(s => s.trim());
+  // 颜色和趣味icon
+  const colors = [
+    {bg:'#ffe082', color:'#b28704', emoji:'🟡'},
+    {bg:'#b3e5fc', color:'#0277bd', emoji:'🔵'},
+    {bg:'#c8e6c9', color:'#388e3c', emoji:'🟢'},
+    {bg:'#f8bbd0', color:'#c2185b', emoji:'🌸'},
+    {bg:'#d1c4e9', color:'#512da8', emoji:'🟣'},
+  ];
+  return (
+    <div style={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 18,
+      margin: '0 auto 24px auto',
+      padding: '18px 0 0 0',
+      position: 'sticky',
+      top: 0,
+      zIndex: 10,
+      background: 'rgba(247,247,250,0.96)',
+      borderBottom: '1.5px solid #e0e7ef',
+      width: '100%',
+      maxWidth: 900
+    }}>
+      {items.map((item, idx) => {
+        const [name, code] = item.split(':');
+        const color = colors[idx % colors.length];
+        return (
+          <div key={item} style={{
+            background: color.bg,
+            color: color.color,
+            borderRadius: 16,
+            minWidth: 120,
+            minHeight: 54,
+            padding: '10px 18px',
+            fontWeight: 700,
+            fontSize: 18,
+            boxShadow: '0 2px 10px 0 rgba(0,0,0,0.07)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: `2.5px solid ${color.color}`,
+            position: 'relative',
+            transition: 'transform 0.18s',
+            cursor: 'pointer',
+            userSelect: 'all',
+            letterSpacing: 1.2
+          }}
+          title={name}
+          onClick={()=>navigator.clipboard.writeText(code)}
+          >
+            <span style={{fontSize: 22, marginBottom: 2}}>{color.emoji}</span>
+            <span style={{fontSize: 15, color: color.color, fontWeight: 600}}>{name}</span>
+            <span style={{fontSize: 22, color: '#222', fontWeight: 800, marginTop: 2}}>{code}</span>
+            <span style={{fontSize: 11, color: '#888', marginTop: 2}}>点击复制</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function DailySecretCard({ secret }) {
+  if (!secret) return null;
+  return (
+    <div style={{
+      border: '2px solid #0071e3',
+      borderRadius: 18,
+      background: '#f7fafd',
+      margin: '20px auto',
+      padding: '24px 32px',
+      maxWidth: 400,
+      boxShadow: '0 8px 24px 0 rgba(0,113,227,0.08)',
+      textAlign: 'center'
+    }}>
+      <div style={{fontWeight: 700, fontSize: 24, color: '#0071e3', marginBottom: 10}}>每日密码</div>
+      <div style={{fontSize: 18, color: '#222', whiteSpace: 'pre-line'}}>{secret}</div>
+    </div>
+  );
+}
+
 // 3. 主内容布局
 function App() {
   const [cookie, setCookie] = useState('');
@@ -279,6 +385,25 @@ function App() {
   const [error, setError] = useState('');
   const [mode, setMode] = useState('gun');
   const [loading, setLoading] = useState(false);
+  const [dailySecret, setDailySecret] = useState('');
+  const [secretError, setSecretError] = useState('');
+  // 删除与改枪码查配装相关的所有useState、handleQueryCode、queryCode、queryResult、queryError、queryLoading、输入框、按钮、结果展示等代码。
+
+  // 页面加载时自动获取每日密码
+  useEffect(() => {
+    const fetchDailySecret = async () => {
+      setSecretError('');
+      setDailySecret('');
+      try {
+        const res = await axios.post('http://localhost:5000/api/daily_secret', {});
+        const desc = res.data?.desc || '暂无数据';
+        setDailySecret(desc);
+      } catch (e) {
+        setSecretError('获取每日密码失败');
+      }
+    };
+    fetchDailySecret();
+  }, []);
 
   const getGunSolutionLoadout = async () => {
     setError('');
@@ -286,9 +411,7 @@ function App() {
     setLoading(true);
     try {
       // 支持本地开发和生产环境
-      const baseUrl = process.env.NODE_ENV === 'development' 
-        ? 'http://localhost:5000' 
-        : 'https://aaa-seven-psi.vercel.app';
+      const baseUrl = 'http://localhost:5000';
       const url = `${baseUrl}/api/gun_solution_loadout`;
       const res = await axios.post(url, {});
       if (res.data.error) {
@@ -300,6 +423,19 @@ function App() {
       setError('请求失败，请检查后端服务是否启动');
     }
     setLoading(false);
+  };
+
+  const getDailySecret = async () => {
+    setSecretError('');
+    setDailySecret('');
+    try {
+      const res = await axios.post('http://localhost:5000/api/daily_secret', {});
+      // 只取 desc 字段
+      const desc = res.data?.desc || '暂无数据';
+      setDailySecret(desc);
+    } catch (e) {
+      setSecretError('获取每日密码失败');
+    }
   };
 
   // 删除粒子特效相关函数和变量
@@ -342,8 +478,8 @@ function App() {
       background: '#f7f7fa',
       fontSize: 20 // 缩小整体字体
     }}>
-      {/* 删除粒子特效组件 */}
-      {/* <Particles id="tsparticles" init={particlesInit} options={particlesOptions} style={{position: 'absolute', top:0, left:0, width:'100vw', height:'100vh', zIndex:0}} /> */}
+      {/* 每日密码卡片行，固定在页面顶端 */}
+      <DailySecretRow secret={dailySecret} />
       <div className="main">
         <style>{`
           .main {
@@ -455,6 +591,8 @@ function App() {
         `}</style>
         <h1 style={{fontWeight:800, fontSize:38, marginBottom:32, letterSpacing:1, color:'#222', textShadow:'0 2px 8px #f0f4fa'}}>三角洲行动随机配装生成器</h1>
         <button className="all-random-btn" onClick={getGunSolutionLoadout}><span role="img" aria-label="shuffle">🔀</span> 一键全部随机</button>
+        {secretError && <div style={{ color: '#d70015', marginTop: 10 }}>{secretError}</div>}
+        {/* <DailySecretCard secret={dailySecret} /> */}
         {error && <div style={{ color: '#d70015', background: '#fff0f0', borderRadius: 12, padding: '14px 18px', marginBottom: 18, fontWeight: 600, fontSize: 20 }}>{error}</div>}
         {loading && <LoadingSpinner />}
         {result && (
@@ -465,20 +603,26 @@ function App() {
             </div>
             {/* 头盔+护甲一行 */}
             <div className="container">
-              <Card title="头盔" level={getLevel(result.helmet, 'helmet')}>{result.helmet?.objectName}</Card>
-              <Card title="护甲" level={getLevel(result.armor, 'armor')}>{result.armor?.objectName}</Card>
+              <Card title="头盔" level={getLevel(result.helmet, 'helmet')} price={result.helmet?.avgPrice}>{result.helmet?.objectName}</Card>
+              <Card title="护甲" level={getLevel(result.armor, 'armor')} price={result.armor?.avgPrice}>{result.armor?.objectName}</Card>
             </div>
             {/* 背包+胸挂一行 */}
             <div className="container">
-              <Card title="背包" level={getLevel(result.backpack, 'backpack')}>{result.backpack?.objectName}</Card>
-              <Card title="胸挂" level={getLevel(result.chest_rig, 'chest_rig')}>{result.chest_rig?.objectName}</Card>
+              <Card title="背包" level={getLevel(result.backpack, 'backpack')} price={result.backpack?.avgPrice}>{result.backpack?.objectName}</Card>
+              <Card title="胸挂" level={getLevel(result.chest_rig, 'chest_rig')} price={result.chest_rig?.avgPrice}>{result.chest_rig?.objectName}</Card>
             </div>
             {/* 主武器+配件合成一个大卡片 */}
             <div className="container" style={{justifyContent:'center'}}>
               <WeaponAndAccessoriesCard weapon={result.weapon} accessories={result.accessories} />
             </div>
+            {/* 新增：显示改枪码 */}
+            {result.solution_code && (
+              <div style={{marginTop: 18, fontWeight: 700, fontSize: 22, color: '#ff4d4f', textAlign: 'center', letterSpacing: 1}}>
+                改枪码：{result.solution_code}
+              </div>
+            )}
             <div style={{marginTop: 24, fontWeight: 800, fontSize: 28, color: '#0071e3', textAlign: 'center', letterSpacing: 1}}>
-              总价格：￥{result.total_price}
+              总价格：¥{result.total_price}
             </div>
           </>
         )}

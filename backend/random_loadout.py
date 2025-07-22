@@ -151,8 +151,17 @@ class RandomLoadout:
             })
         # 其他装备随机
         all_items = self.get_all_items()
-        def pick(names):
+        # 六级头盔和护甲名称
+        level6_helmets = [
+            "H70 夜视精英头盔", "GT5 指挥官头盔", "DICH-9重型头盔", "H70 精英头盔"
+        ]
+        level6_armors = [
+            "泰坦防弹装甲", "特里克MAS2.0装甲"
+        ]
+        def pick(names, exclude=None):
             items = [item for item in all_items if item.get("objectName") in names]
+            if exclude:
+                items = [item for item in items if item.get("objectName") not in exclude]
             return random.choice(items) if items else None
         helmet = pick([
             "H70 夜视精英头盔", "GT5 指挥官头盔", "DICH-9重型头盔", "H70 精英头盔", "GN 久战重型夜视头盔",
@@ -160,26 +169,34 @@ class RandomLoadout:
             "GT1 战术头盔", "DICH 训练头盔", "MHS 战术头盔", "D6 战术头盔", "MC201 头盔",
             "DAS 防弹头盔", "H07 战术头盔", "防暴头盔", "MC防弹头盔", "DRO 战术头盔",
             "H01 战术头盔", "复古摩托头盔", "户外棒球帽", "奔尼帽", "安保头盔", "老式钢盔"
-        ])
+        ], exclude=level6_helmets)
         armor = pick([
             "泰坦防弹装甲", "特里克MAS2.0装甲", "HA-2防弹装甲", "金刚防弹衣", "重型突击背心",
             "FS复合防弹衣", "Hvk-2防弹衣", "精英防弹背心", "HMP特勤防弹衣", "MK-2战术背心",
             "DT-AVS防弹衣", "突击手防弹背心", "武士防弹背心", "射手战术背心", "TG-H防弹衣",
             "Hvk快拆防弹衣", "制式防弹背心", "轻型防弹衣", "尼龙防弹衣", "安保防弹衣", "摩托马甲"
-        ])
+        ], exclude=level6_armors)
+        # 六级背包名称
+        level6_backpacks = [
+            "GTO重型战术包", "D7战术背包"
+        ]
         backpack = pick([
             "GTO重型战术包", "D7战术背包", "重型登山包", "GT5野战背包", "D3战术登山包",
             "HLS-2重型背包", "ALS背负系统", "生存战术背包", "GT1户外登山包", "D2战术登山包",
             "野战徒步背包", "MAP侦察背包", "雨林猎手背包", "GA野战背包", "DASH战术背包",
             "3H战术背包", "大型登山包", "露营背包", "突袭战术背包", "战术快拆背包",
             "轻型户外背包", "帆布背囊", "DG运动背包", "旅行背包", "运动背包"
-        ])
+        ], exclude=level6_backpacks)
+        # 五级胸挂名称
+        level5_chest_rigs = [
+            "DAR突击手胸挂", "黑鹰野战胸挂", "飓风战术胸挂"
+        ]
         chest_rig = pick([
             "DAR突击手胸挂", "黑鹰野战胸挂", "飓风战术胸挂", "GIR野战胸挂", "DRC先进侦察胸挂",
             "突击者战术背心", "强袭战术背心", "G01战术弹挂", "DSA战术胸挂", "HD3战术胸挂",
             "简易携行弹挂", "通用战术胸挂", "D01轻型胸挂", "HK3便携胸挂", "尼龙挎包",
             "简易挂载包", "轻型战术胸挂", "快速侦察胸挂", "便携胸包"
-        ])
+        ], exclude=level5_chest_rigs)
         def simple_item(item):
             if not item:
                 return None
@@ -204,7 +221,8 @@ class RandomLoadout:
             "backpack": simple_item(backpack),
             "chest_rig": simple_item(chest_rig),
             "accessories": acc_simple,
-            "total_price": total_price
+            "total_price": total_price,
+            "solution_code": gun_solution.get("solutionCode") or solution.get("solutionCode") or solution.get("id")
         }
 
     def generate_random_loadout(self):
@@ -301,4 +319,61 @@ class RandomLoadout:
                 (chest_rig.get("avgPrice", 0) if chest_rig else 0),
                 sum([acc.get("avgPrice", 0) for acc in selected_accessories])
             ])
+        }
+
+    def get_gun_solution_by_code(self, code):
+        params = {
+            "iChartId": "316969",
+            "iSubChartId": "316969",
+            "sIdeToken": "NoOapI",
+            "method": "dfm/solution.arms.detail",
+            "source": "2",
+            "param": json.dumps({"solutionCode": code})
+        }
+        resp = requests.post(self.base_url, params=params, headers=self.headers, verify=False)
+        data = resp.json()
+        detail_list = []
+        if data.get("ret") == 0 and data.get("jData", {}).get("data", {}).get("data", {}).get("list"):
+            detail_list = data["jData"]["data"]["data"]["list"]
+        if not detail_list:
+            print('腾讯接口返回:', resp.text)
+            return {"error": "未查到该改枪码的配装"}
+        solution = detail_list[0]
+        weapon = solution.get("armsDetail", {})
+        accessories = []
+        for acc in solution.get("accessoryDetail", []):
+            if acc.get("objectID"):
+                accessories.append({
+                    "objectID": acc.get("objectID"),
+                    "slotID": acc.get("slotID")
+                })
+        relate_map = solution.get("relateMap", {})
+        acc_simple = []
+        for acc in accessories:
+            acc_info = relate_map.get(str(acc["objectID"]))
+            if not acc_info or not acc_info.get("objectName"):
+                all_items = self.get_all_items()
+                found = next((item for item in all_items if str(item.get("objectID")) == str(acc["objectID"])), None)
+                acc_info = found if found else {}
+            acc_simple.append({
+                "objectID": acc_info.get("objectID", acc["objectID"]),
+                "objectName": acc_info.get("objectName", "未知配件"),
+                "avgPrice": acc_info.get("avgPrice", 0)
+            })
+        def simple_item(item):
+            if not item:
+                return None
+            return {
+                "objectID": item.get("objectID"),
+                "objectName": item.get("objectName"),
+                "avgPrice": item.get("avgPrice", 0)
+            }
+        total_price = (weapon.get("avgPrice", 0) if weapon else 0) + sum([acc.get("avgPrice", 0) for acc in acc_simple])
+        return {
+            "solution_name": solution.get("solutionName") or solution.get("name"),
+            "solution_desc": solution.get("desc"),
+            "weapon": simple_item(weapon),
+            "accessories": acc_simple,
+            "total_price": total_price,
+            "solution_code": solution.get("solutionCode") or solution.get("id")
         } 
